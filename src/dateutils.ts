@@ -136,34 +136,51 @@ export function page(date: XDate, firstDayOfWeek = 0, showSixWeeks = false) {
 
   firstDayOfWeek = firstDayOfWeek || 0;
 
+  // Use safe date operations to avoid DST issues
   const from = days[0].clone();
+  // Force to noon to avoid DST boundary issues
+  from.setHours(12, 0, 0, 0);
   const daysBefore = from.getDay();
 
   if (from.getDay() !== fdow) {
-    from.addDays(-(from.getDay() + 7 - fdow) % 7);
+    const daysToSubtract = (from.getDay() + 7 - fdow) % 7;
+    // Use setDate instead of addDays to avoid DST issues
+    const newDate = new Date(from.getFullYear(), from.getMonth(), from.getDate() - daysToSubtract, 12, 0, 0, 0);
+    from.setTime(newDate.getTime());
   }
 
   const to = days[days.length - 1].clone();
+  // Force to noon to avoid DST boundary issues  
+  to.setHours(12, 0, 0, 0);
   const day = to.getDay();
   if (day !== ldow) {
-    to.addDays((ldow + 7 - day) % 7);
+    const daysToAdd = (ldow + 7 - day) % 7;
+    // Use setDate instead of addDays to avoid DST issues
+    const newDate = new Date(to.getFullYear(), to.getMonth(), to.getDate() + daysToAdd, 12, 0, 0, 0);
+    to.setTime(newDate.getTime());
   }
 
   const daysForSixWeeks = (daysBefore + days.length) / 6 >= 6;
 
   if (showSixWeeks && !daysForSixWeeks) {
-    to.addDays(7);
+    // Use setDate instead of addDays
+    const newDate = new Date(to.getFullYear(), to.getMonth(), to.getDate() + 7, 12, 0, 0, 0);
+    to.setTime(newDate.getTime());
   }
 
   if (isLTE(from, days[0])) {
     before = fromTo(from, days[0]);
+    // Remove the last day to avoid duplication
+    before.pop();
   }
 
   if (isGTE(to, days[days.length - 1])) {
     after = fromTo(days[days.length - 1], to);
+    // Remove the first day to avoid duplication
+    after.shift();
   }
 
-  return before.concat(days.slice(1, days.length - 1), after);
+  return before.concat(days, after);
 }
 
 export function isDateNotInRange(date: XDate, minDate: string, maxDate: string) {
