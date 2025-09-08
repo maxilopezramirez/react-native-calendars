@@ -96,11 +96,12 @@ export function formatNumbers(date: any) {
 
 function fromTo(a: XDate, b: XDate): XDate[] {
   const days: XDate[] = [];
-  let from = +a;
-  const to = +b;
+  let current = a.clone();
+  const to = b.clone();
 
-  for (; from <= to; from = new XDate(from, true).addDays(1).getTime()) {
-    days.push(new XDate(from, true));
+  while (current <= to) {
+    days.push(current.clone());
+    current.addDays(1);
   }
   return days;
 }
@@ -110,8 +111,8 @@ export function month(date: XDate) { // exported for tests only
     month = date.getMonth();
   const days = new XDate(year, month + 1, 0).getDate();
 
-  const firstDay: XDate = new XDate(year, month, 1, 0, 0, 0, true);
-  const lastDay: XDate = new XDate(year, month, days, 0, 0, 0, true);
+  const firstDay: XDate = new XDate(year, month, 1, 12, 0, 0, false);
+  const lastDay: XDate = new XDate(year, month, days, 12, 0, 0, false);
 
   return fromTo(firstDay, lastDay);
 }
